@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Path
 
+app = FastAPI()
+
 @app.get("/")
 async def root(skip: int = 0, limit: int = 10):
     return "a paginated list of posts"
