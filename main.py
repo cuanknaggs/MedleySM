@@ -3,6 +3,7 @@
 from fastapi import FastAPI, Path, status
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 # Create a sqlite engine instance
@@ -12,7 +13,7 @@ engine = create_engine("sqlite:///medleysm.db")
 Base = declarative_base()
 
 # Define To Do class inheriting from Base
-class post(Base):
+class Post(Base):
     __tablename__ = 'posts'
     id = Column(Integer, primary_key=True)
     content = Column(String(256))
@@ -20,7 +21,6 @@ class post(Base):
     parent_post = Column(Integer)
     fact_check = Column(Integer)
     user_id = Column(Integer)
-    child_posts = Column(Integer)
 
 # Create the database
 Base.metadata.create_all(engine)
@@ -30,8 +30,6 @@ Base.metadata.create_all(engine)
 class createPost(BaseModel):
     content: str
     parent_post: int
-    user_id: int
-    child_posts: int
 
 
 app = FastAPI()
@@ -109,7 +107,29 @@ async def post(post_id: int):
 
 @app.post("/post", status_code=status.HTTP_201_CREATED)
 async def post(post: createPost):
-    return "create post"
+    # get current user
+    user_id = 0
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # create an instance of the medleysmdb database model
+    medleysmdb = Post(
+        content = post.content,
+        parent_post = post.parent_post,
+        user_id = user_id
+    )
+
+    # add it to the session and commit it
+    session.add(medleysmdb)
+    session.commit()
+
+    # grab the id given to the object from the database
+    id = medleysmdb.id
+
+    # close the session
+    session.close()
+
+    return f"create post {id}"
 
 @app.put("/post/{post_id}")
 async def post(post_id: int):
