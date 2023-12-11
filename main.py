@@ -1,6 +1,6 @@
 # TODO: remove mock data 
 
-from fastapi import FastAPI, Path, status
+from fastapi import FastAPI, Path, status, HTTPException
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
@@ -46,49 +46,6 @@ users = [
                 "name": "user1"
             },
         ]
-posts = [
-            {
-                "id": 0,
-                "content": "text",
-                "likes": 42,
-                "parent_post": None,
-                "fact_check": 0,
-                "user_id": 0
-            },
-            {
-                "id": 1,
-                "content": "text1",
-                "likes": 0,
-                "parent_post": None,
-                "fact_check": 0,
-                "user_id": 0
-            },
-            {
-                "id": 2,
-                "content": "text",
-                "likes": 42,
-                "parent_post": None,
-                "fact_check": 0,
-                "user_id": 0
-            },
-            {
-                "id": 3,
-                "content": "text1",
-                "likes": 0,
-                "parent_post": None,
-                "fact_check": 0,
-                "user_id": 0
-            }
-        ]
-post = {
-            "id": 0,
-            "content": "text",
-            "likes": 42,
-            "parent_post": None,
-            "fact_check": 0,
-            "user_id": 0,
-            "child_posts": posts
-        }
 
 
 
@@ -99,14 +56,30 @@ async def root(start: int = 0, limit: int = 10):
     take int start as first position
     take int limit as number of posts to return
     '''
-    return posts[start: start + limit]
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # get the post item with the given id
+    posts = session.query(Post).where(Post.id>=start).limit(limit).all()
+
+    # close the session
+    session.close()
+    return posts
 
 @app.get("/post/{post_id}")
-async def post(post_id: int):
+async def get_post(post_id: int):
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # get the post item with the given id
+    post = session.query(Post).get(post_id)
+
+    # close the session
+    session.close()
     return post
 
 @app.post("/post", status_code=status.HTTP_201_CREATED)
-async def post(post: createPost):
+async def create_post(post: createPost):
     # get current user
     user_id = 0
     # create a new database session
@@ -132,8 +105,8 @@ async def post(post: createPost):
     return f"create post {id}"
 
 @app.put("/post/{post_id}")
-async def post(post_id: int):
-    return "create post"
+async def update_post(post_id: int):
+    return "update post"
 
 @app.get("/user/{user_id}")
 async def user(user_id: int):
