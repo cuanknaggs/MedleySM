@@ -1,5 +1,9 @@
-from fastapi import FastAPI, Path, status, HTTPException
-from sqlalchemy import create_engine, Column, Integer, String
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -18,12 +22,15 @@ class Post(Base):
     likes = Column(Integer)
     parent_post = Column(Integer)
     fact_check = Column(Integer)
+    user_name = Column(String(256))
     user_id = Column(Integer)
 
 class Users(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     name = Column(String(256), unique=True)
+    passwordHashed = Column(String)
+    moderator = Column(Boolean)
 
 # Create the database
 Base.metadata.create_all(engine)
@@ -36,10 +43,22 @@ class createPost(BaseModel):
 # Create createUser Base Model
 class createUser(BaseModel):
     name: str
+    password: str
+    moderator: bool
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+@app.post("/api/login")
+async def login():
+    return "login"
 
 @app.get("/api/posts")
 async def posts(start: int = 0, limit: int = 10):
@@ -74,6 +93,7 @@ async def get_post(post_id: int):
 async def create_post(post: createPost):
     # get current user
     user_id = 0
+    user_name = 'qwerty'
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
@@ -81,6 +101,7 @@ async def create_post(post: createPost):
     medleysmdb = Post(
         content = post.content,
         parent_post = post.parent_post,
+        user_name = user_name,
         user_id = user_id
     )
 
@@ -98,6 +119,26 @@ async def create_post(post: createPost):
 
 @app.put("/api/post/{post_id}")
 async def update_post(post_id: int):
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # get the post item with the given id
+    post = session.query(Post).get(post_id)
+
+    # update todo item with the given task (if an item with the given id was found)
+    if post:
+        likes = post.likes + 1
+        post.likes = likes
+        session.commit()
+
+    # close the session
+    session.close()
+
+    # check if todo item with given id exists. If not, raise exception and return 404 not found response
+    if not post:
+        raise HTTPException(status_code=404, detail=f"Post not found")
+
+    # return post.likes
     return "update post"
 
 @app.get("/api/user/{user_id}")
@@ -126,12 +167,17 @@ async def users():
 
 @app.post("/api/user")
 async def create_user(user: createUser):
+    # hash password
+    passwordHash = user.password + 'trash'
+
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
     # create an instance of the medleysmdb database model
     medleysmdb = Users(
-        name = user.name
+        name = user.name,
+        passwordHashed = passwordHash,
+        moderator = user.moderator
     )
 
     # add it to the session and commit it
