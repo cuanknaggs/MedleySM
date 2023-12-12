@@ -1,5 +1,3 @@
-# TODO: remove mock data 
-
 from fastapi import FastAPI, Path, status, HTTPException
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
@@ -22,30 +20,24 @@ class Post(Base):
     fact_check = Column(Integer)
     user_id = Column(Integer)
 
+class Users(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(256), unique=True)
+
 # Create the database
 Base.metadata.create_all(engine)
-
 
 # Create createPost Base Model
 class createPost(BaseModel):
     content: str
     parent_post: int
 
+# Create createUser Base Model
+class createUser(BaseModel):
+    name: str
 
 app = FastAPI()
-
-
-# some mock data
-users = [
-            {
-                "id": 0,
-                "name": "user0"
-            },
-            {
-                "id": 1,
-                "name": "user1"
-            },
-        ]
 
 
 
@@ -109,5 +101,47 @@ async def update_post(post_id: int):
     return "update post"
 
 @app.get("/user/{user_id}")
-async def user(user_id: int):
-    return posts
+async def get_user(user_id: int):
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # get the post item with the given id
+    user = session.query(Users).get(user_id)
+
+    # close the session
+    session.close()
+    return user
+
+@app.get("/users")
+async def users():
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # get the post item with the given id
+    users = session.query(Users).all()
+
+    # close the session
+    session.close()
+    return users
+
+@app.post("/user")
+async def create_user(user: createUser):
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # create an instance of the medleysmdb database model
+    medleysmdb = Users(
+        name = user.name
+    )
+
+    # add it to the session and commit it
+    session.add(medleysmdb)
+    session.commit()
+
+    # grab the id given to the object from the database
+    id = medleysmdb.id
+
+    # close the session
+    session.close()
+
+    return f"create user {id}"
