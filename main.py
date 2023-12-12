@@ -41,8 +41,8 @@ app = FastAPI()
 
 
 
-@app.get("/")
-async def root(start: int = 0, limit: int = 10):
+@app.get("/api/posts")
+async def posts(start: int = 0, limit: int = 10):
     '''
     return a paginated list of posts
     take int start as first position
@@ -58,7 +58,7 @@ async def root(start: int = 0, limit: int = 10):
     session.close()
     return posts
 
-@app.get("/post/{post_id}")
+@app.get("/api/post/{post_id}")
 async def get_post(post_id: int):
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
@@ -70,7 +70,7 @@ async def get_post(post_id: int):
     session.close()
     return post
 
-@app.post("/post", status_code=status.HTTP_201_CREATED)
+@app.post("/api/post", status_code=status.HTTP_201_CREATED)
 async def create_post(post: createPost):
     # get current user
     user_id = 0
@@ -96,11 +96,11 @@ async def create_post(post: createPost):
 
     return f"create post {id}"
 
-@app.put("/post/{post_id}")
+@app.put("/api/post/{post_id}")
 async def update_post(post_id: int):
     return "update post"
 
-@app.get("/user/{user_id}")
+@app.get("/api/user/{user_id}")
 async def get_user(user_id: int):
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
@@ -112,7 +112,7 @@ async def get_user(user_id: int):
     session.close()
     return user
 
-@app.get("/users")
+@app.get("/api/users")
 async def users():
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
@@ -124,7 +124,7 @@ async def users():
     session.close()
     return users
 
-@app.post("/user")
+@app.post("/api/user")
 async def create_user(user: createUser):
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
