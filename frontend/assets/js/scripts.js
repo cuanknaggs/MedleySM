@@ -28,6 +28,7 @@ getPosts().then((data) => {
     console.log(data);
     data.map((post) => {
         const postContent = document.createElement('li');
+        const postContentWrapper = document.createElement('div');
         const title = document.createElement('h3');
         const content = document.createElement('p');
         const likeCount = document.createElement('span');
@@ -43,13 +44,14 @@ getPosts().then((data) => {
             like.appendChild(likeCount)
         }
 
-        postContent.appendChild(title);
-        postContent.appendChild(content);
-        postContent.appendChild(like);
+        postContentWrapper.appendChild(title);
+        postContentWrapper.appendChild(content);
+        postContentWrapper.appendChild(like);
         if (post.fack_check) {
             fackCheck.innerHTML = post.fact_check;
-            postContent.appendChild(fackCheck);
+            postContentWrapper.appendChild(fackCheck);
         }
+        postContent.appendChild(postContentWrapper);
         postsList.appendChild(postContent);
     })
 })

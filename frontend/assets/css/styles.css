@@ -1,15 +1,112 @@
+:root {
+    --clip-path: polygon(0 0,0 100%,calc(100% - 1rem) 100%,100% calc(100% - 1rem),100% 0);
+    --clip-path-s: polygon(0 0,0 100%,calc(100% - 0.6rem) 100%,100% calc(100% - 0.6rem),100% 0);
+}
 body {
-    background: black;
+    background: #0d0926;
     color: deeppink;
     font-family: sans-serif;
+    display: grid; 
+    grid-template-columns: 1fr; 
+    grid-template-rows: 9em 1fr 3em; 
+    gap: 0px 0px; 
+    grid-template-areas: 
+        "page_header"
+        "page_main"
+        "page_footer";
+}
+.page_header {
+    padding: 3em;
+    border-bottom: 1px solid aqua;
+    margin-bottom: 1.5rem;
+    grid-area: page_header;
+
+    & .logo {
+        
+        & h1 {
+            color: aqua;
+            text-shadow: 3px 3px 0 #000,
+                -3px 3px 0 #000,
+                -3px -3px 0 #000,
+                3px -3px 0 #000;
+        }
+        & h1:before {
+            content: "Medley SM"
+            display: block;
+        }
+
+    }
+}
+.page_main {
+    grid-area: page_main;
+    width: 100%;
+    max-width: 50rem;
+    margin: auto;
+}
+.page_footer {
+    grid-area: page_footer;
+    border-top: 1px solid aqua;
+    background-repeat: no-repeat;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    height: 3rem;
+    line-height: 3rem;
+    overflow: hidden;
+    clip-path: var(--clip-path);
+    background: linear-gradient(90deg,red,yellow,aqua,Indigo 13.75rem);
+}
+.page_footer::before {
+    content: " ";
+    height: inherit;
+    display: block;
+    float: left;
+    background-position: top left;
+    background-repeat: no-repeat;
+    background-size: cover;
+    width: 13.75rem;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="50"><path d="m0 0-10 50h20L35 0zM37 0 12 50h18L55 0zM59 0 34 50h16L75 0zM81 0 56 50h14L95 0zM103 0 78 50h12l25-50zM125 0l-25 50h10l25-50zM147 0l-25 50h8l25-50zM169 0l-25 50h6l25-50zM191 0l-25 50h4l25-50zM213 0l-25 50h2l25-50z"/></svg>');
 }
 .posts {
     & ul {
         list-style: none;
-        padding: 0;
+        padding: 1em 0;
         margin: 0;
         display: flex;
         flex-flow: column;
         gap: 1rem;
+    }
+    & li {
+        background: aqua;
+        box-shadow: 0 0 0.5em aqua;
+        & div {
+            padding: 1rem;
+            background: black;
+            clip-path: var(--clip-path);
+            border: 1px solid aqua;
+            & p {
+                padding-bottom: 0.8em;
+            }
+        }
+    }
+    & li:hover {
+         animation: pulse-animation 1s infinite;
+    }
+    & button {
+        border: none;
+        border-radius: 0;
+        background: yellow;
+        color: black;
+        padding-left: 1em;
+        padding-right: 1em;
+        clip-path: var(--clip-path-s);
+    }
+}
+@keyframes pulse-animation {
+    0% {
+        box-shadow: 0 0 0 0px #00ffffdd;
+    }
+    100% {
+        box-shadow: 0 0 0 20px #00ffff00;
     }
 }
