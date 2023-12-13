@@ -1,12 +1,30 @@
-from typing import Annotated
+from datetime import datetime, timedelta
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+
+# dont hard code secrets
+SECRET_KEY = "65ad7bdd39f2fca35a542897f92202573ed7b7a808174f1b400eb181f5f4ce57"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    name: str | None = None
+
+class User(BaseModel):
+    name: str
+    moderator: bool | None = None
 
 # Create a sqlite engine instance
 engine = create_engine("sqlite:///medleysm.db")
@@ -46,7 +64,70 @@ class createUser(BaseModel):
     password: str
     moderator: bool
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 app = FastAPI()
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+async def get_user_by_name(name: str):
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # get the post item with the given id
+    user = session.query(Users).where(Users.name == name).first()
+
+    # close the session
+    session.close()
+
+    return user
+
+async def authenticate_user(name: str, password: str):
+    user = await get_user_by_name(name)
+    if not user:
+        return False
+    if not verify_password(password, user.passwordHashed):
+        return False
+    return user
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        name: str = payload.get("sub")
+        if name is None:
+            raise credentials_exception
+        token_data = TokenData(name=name)
+    except JWTError:
+        raise credentials_exception
+    user = await get_user_by_name(name=token_data.name)
+    if user is None:
+        raise credentials_exception
+    print(user)
+    return user
+
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
+    return current_user
 
 app.add_middleware(
     CORSMiddleware,
@@ -168,7 +249,7 @@ async def users():
 @app.post("/api/user")
 async def create_user(user: createUser):
     # hash password
-    passwordHash = user.password + 'trash'
+    passwordHash = get_password_hash(user.password)
 
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
@@ -191,3 +272,27 @@ async def create_user(user: createUser):
     session.close()
 
     return f"create user {id}"
+
+@app.post("/api/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = await authenticate_user(form_data.name, form_data.password)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect name or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.name}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/api/users/me/", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
+
+@app.get("/api/users/me/items/")
+async def read_own_items(current_user: User = Depends(get_current_active_user)):
+    return [{"item_id": "Foo", "owner": current_user.name}]
