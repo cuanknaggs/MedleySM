@@ -42,6 +42,7 @@ body {
     width: 100%;
     max-width: 50rem;
     margin: auto;
+    padding: 0 1.5em;
 }
 .page_footer {
     grid-area: page_footer;
