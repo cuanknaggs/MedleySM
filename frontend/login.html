@@ -1,12 +1,42 @@
-<!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Medley SM: login</title>
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+    <link href="assets/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/styles.css" rel="stylesheet" type="text/css" />
   </head>
   <body>
-    <header></header>
-    <main></main>
-    <footer></footer>
+    <header class="page_header">
+      <div class="logo">
+        <h1><img src="assets/images/logo.svg" alt="Medley SM. Talk is cheap" /></h1>
+      </div>
+    </header>
+    <main class="page_main">
+      <h2>login</h2>
+      <p id="message" class="message"></p>
+      <form id="login" class="login" action="http://127.0.0.1:8000/api/token">
+        <div class="user_wrapper wrapper">
+          <label for="username">uesrName</label>
+          <input id="username" name="username" type="text" />
+        </div>
+        <div class="password_wrapper wrapper">
+          <label for="password">password</label>
+          <input id="password" name="password" type="password" />
+        </div>
+        <div class="submit_wrapper">
+          <input type="submit" value="login" />
+        </div>
+      </form>
+    </main>
+    <footer class="page_footer">
+      some text
+    </footer>
+    <script src="assets/js/scripts.js"></script>
+    <script src="assets/js/login.js"></script>
   </body>
 </html>
