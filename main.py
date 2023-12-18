@@ -275,7 +275,7 @@ async def create_user(user: createUser):
 
 @app.post("/api/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = await authenticate_user(form_data.name, form_data.password)
+    user = await authenticate_user(form_data.username, form_data.password)
 
     if not user:
         raise HTTPException(
