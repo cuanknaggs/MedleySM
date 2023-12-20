@@ -16,7 +16,6 @@ getUserPosts = async (userName) => {
 
 likePost = async (postId) => {
     try {
-        console.log('ping');
         const response = await fetch(`http://127.0.0.1:8000/api/post/like/${postId}`, {
             method: "PUT",
             headers: {
