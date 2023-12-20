@@ -2,6 +2,12 @@
     --clip-path: polygon(0 0,0 100%,calc(100% - 1rem) 100%,100% calc(100% - 1rem),100% 0);
     --clip-path-s: polygon(0 0,0 100%,calc(100% - 0.6rem) 100%,100% calc(100% - 0.6rem),100% 0);
 }
+html,
+body {
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+}
 body {
     background: #0d0926;
     color: deeppink;
@@ -25,25 +31,37 @@ input[type='submit'] {
     padding-right: 1em;
     clip-path: var(--clip-path-s);
 }
-
+button.cancel {
+    background: red;
+}
 h2 {
     font-size: 1.5em;
     font-weight: 700;
-    margin-bottom: 1.5em;
+    margin-bottom: 1em;
     padding: 0.3em 1em;
     clip-path: var(--clip-path);
     background: yellow;
     color: black;
 }
-
+a {
+    color: white;
+}
 .page_header {
-    padding: 3em;
+    padding-left: 3em;
+    padding-right: 3em;
     border-bottom: 1px solid aqua;
-    margin-bottom: 1.5rem;
     grid-area: page_header;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 0;
+    grid-template-areas: 
+        "logo auth";
 
     & .logo {
-        
+        grid-area: logo;
+        display: flex;
+        align-content: center;
         & h1 {
             color: aqua;
             text-shadow: 3px 3px 0 #000,
@@ -55,24 +73,35 @@ h2 {
             content: "Medley SM"
             display: block;
         }
-
+    }
+    & .auth {
+        grid-area: auth;
+        display: flex;
+        justify-content: end;
+        align-items: center;
     }
 }
 .page_main {
     grid-area: page_main;
+    overflow: hidden;
+    height: 100%;
     width: 100%;
     max-width: 50rem;
     margin: auto;
     padding: 0 1.5em;
 
     & .posts {
+        height: 100%;
         & ul {
             list-style: none;
-            padding: 1em 0;
+            padding: 0;
             margin: 0;
             display: flex;
             flex-flow: column;
             gap: 1rem;
+            height: calc(100% - 6rem);
+            overflow-y: auto;
+            scrollbar-color: red aqua;
         }
         & li {
             background: aqua;
@@ -96,69 +125,6 @@ h2 {
         }
     }
 
-    & .login {
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr 1fr 3rem;
-        gap: 1.8em;
-        grid-auto-flow: row;
-        grid-template-areas:
-            "user_wrapper"
-            "password_wrapper"
-            "submit_wrapper";
-            & label,
-            & input[type='text'],
-            & input[type='password'] {
-                display: block;
-                width: 100%;
-            }
-            & label {
-                font-weight: bold;
-                font-size: 1.1em;
-                padding-bottom: 0.5em;
-            }
-            & input[type='text'],
-            & input[type='password'] {
-                background: black;
-                border: 1px solid aqua;
-                color: aqua;
-                padding: 0.8em 1em;
-            }
-            & .wrapper {
-                background: aqua;
-                padding: 1em;
-                border: 1px solid aqua;
-                box-shadow: 0 0 0.5em aqua;
-                position: relative;
-                & label,
-                & input {
-                    position: relative;
-                }
-            }
-            & .wrapper::before {
-                display: block;
-                content: " ";
-                background: black;
-                width: 100%;
-                height: 100%;
-                position: absolute;
-                top: 0;
-                left: 0;
-                z-index: 0;
-                clip-path: var(--clip-path);
-            }
-            & .user_wrapper {
-                grid-area: user_wrapper;
-            }
-            & .password_wrapper {
-                grid-area: password_wrapper;
-            }
-            & .submit_wrapper {
-                grid-area: submit_wrapper;
-                display: flex;
-                justify-content: end;
-            }
-        }
 }
 .page_footer {
     grid-area: page_footer;
@@ -183,6 +149,107 @@ h2 {
     background-size: cover;
     width: 13.75rem;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="50"><path d="m0 0-10 50h20L35 0zM37 0 12 50h18L55 0zM59 0 34 50h16L75 0zM81 0 56 50h14L95 0zM103 0 78 50h12l25-50zM125 0l-25 50h10l25-50zM147 0l-25 50h8l25-50zM169 0l-25 50h6l25-50zM191 0l-25 50h4l25-50zM213 0l-25 50h2l25-50z"/></svg>');
+}
+
+dialog {
+    background: black;
+    color: magenta;
+    box-shadow: 0 0 0.5em magenta;
+    width: 100%;
+    max-width: 31.25rem;
+}
+dialog::backdrop {
+    background: #0005;
+    backdrop-filter: blur(4px);
+}
+
+.login_dialog {
+    & .login {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr 3rem;
+        gap: 1.8em;
+        grid-auto-flow: row;
+        grid-template-areas:
+            "user_wrapper"
+            "password_wrapper"
+            "submit_wrapper";
+        & label,
+        & input[type='text'],
+        & input[type='password'] {
+            display: block;
+            width: 100%;
+        }
+        & label {
+            font-weight: bold;
+            font-size: 1.1em;
+            padding-bottom: 0.5em;
+        }
+        & input[type='text'],
+        & input[type='password'] {
+            background: black;
+            border: 1px solid aqua;
+            color: aqua;
+            padding: 0.8em 1em;
+        }
+        & .wrapper {
+            background: aqua;
+            padding: 1em;
+            border: 1px solid aqua;
+            box-shadow: 0 0 0.5em aqua;
+            position: relative;
+            & label,
+            & input {
+                position: relative;
+            }
+        }
+        & .wrapper::before {
+            display: block;
+            content: " ";
+            background: black;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            clip-path: var(--clip-path);
+        }
+        & .user_wrapper {
+            grid-area: user_wrapper;
+        }
+        & .password_wrapper {
+            grid-area: password_wrapper;
+        }
+        & .submit_wrapper {
+            grid-area: submit_wrapper;
+            display: flex;
+            justify-content: space-between;
+        }
+    }
+
+}
+
+.create_post_button {
+    position: absolute;
+    bottom: 3.5rem;
+    right: 3.5rem;
+}
+.create_post {
+    display: flex;
+    flex-flow: column;
+    gap: 1em;
+
+    & textarea {
+        background: black;
+        border: 1px solid aqua;
+        color: aqua;
+        padding: 0.8em 1em;
+    }
+    & .button_wrapper {
+        display: flex;
+        justify-content: space-between;
+    }
 }
 
 @keyframes pulse-animation {

@@ -171,8 +171,10 @@ async def get_post(post_id: int):
     return post
 
 @app.post("/api/post", status_code=status.HTTP_201_CREATED)
-async def create_post(post: createPost):
+async def create_post(post: createPost, current_user: User = Depends(get_current_active_user)):
     # get current user
+    print(post)
+    print(current_user)
     user_id = 0
     user_name = 'qwerty'
     # create a new database session

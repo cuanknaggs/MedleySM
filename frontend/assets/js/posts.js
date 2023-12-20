@@ -10,17 +10,19 @@ likePost = (postId) => {
 }
 
 getPosts().then((data) => {
-    console.log(data);
     data.map((post) => {
         const postContent = document.createElement('li');
         const postContentWrapper = document.createElement('div');
         const title = document.createElement('h3');
+        const userName = document.createElement('button');
         const content = document.createElement('p');
         const likeCount = document.createElement('span');
         const like = document.createElement('button');
         const fackCheck = document.createElement('p');
 
-        title.innerHTML = post.user_name;
+        userName.innerHTML = post.user_name;
+        userName.setAttribute('data-user', post.user_name);
+        title.appendChild(userName);
         content.innerHTML = post.content;
         like.innerHTML = 'Like';
         like.setAttribute('id', `like_${post.id}`)

@@ -12,8 +12,9 @@
   </head>
   <body>
     <header class="page_header">
-      <div class="logo">
-        <h1><img src="assets/images/logo.svg" alt="Medley SM. Talk is cheap" /></h1>
+      <h1 class="logo"><img src="assets/images/logo.svg" alt="Medley SM. Talk is cheap" /></h1>
+      <div class="auth">
+        <button id="loginButton">login</button>
       </div>
     </header>
     <main class="page_main">
@@ -23,8 +24,45 @@
       </section>
     </main>
     <footer class="page_footer">
-      some text
+      <p>
+        API docs: <a href="http://127.0.0.1:8000/docs" target="_blank">http://127.0.0.1:8000/docs</a>
+      </p>
     </footer>
+
+    <button id="createPostButton" class="create_post_button">+ create post</button>
+
+    <dialog id="createPostDialog" class="create_post_dialog">
+      <h2>create post</h2>
+      <p id="parentPost"> - </p>
+      <p id="createPostMessage"></p>
+      <form id="createPost" class="create_post" action="http://127.0.0.1:8000/api/post">
+        <label for="newPost">your post goes here</label>
+        <textarea id="newPost" name="newPost" rows="5" cols="33"></textarea>
+        <div class="button_wrapper">
+          <button id="cancelCreatePost" class="cancel">cancel</button>
+          <input type="submit" value="post" />
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="loginDialog" class="login_dialog">
+      <h2>login</h2>
+      <p id="message" class="message"></p>
+      <form id="login" class="login" action="http://127.0.0.1:8000/api/token">
+        <div class="user_wrapper wrapper">
+          <label for="username">uesrName</label>
+          <input id="username" name="username" type="text" />
+        </div>
+        <div class="password_wrapper wrapper">
+          <label for="password">password</label>
+          <input id="password" name="password" type="password" />
+        </div>
+        <div class="submit_wrapper">
+          <button id="cancelLogin" class="cancel">cancel</button>
+          <input type="submit" value="login" />
+        </div>
+      </form>
+    </dialog>
     <script src="assets/js/scripts.js"></script>
     <script src="assets/js/posts.js"></script>
   </body>

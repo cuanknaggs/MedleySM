@@ -13,15 +13,13 @@ const login = async (event) => {
         const data = await response.json();
         switch(response.status) {
             case 200:
-                const cookie = `value=${data.access_token};secure=httpOnly;sameSite=strict`;
-                document.cookie = cookie;
-                path.pop();
-                path.push('index.html');
-                console.log(path.join('/'));
-                window.location.href = path.join('/');
+                setCookie('medleysm', data.access_token, 1);
+
+                jwt = data.access_token;
+                loginDialog.close();
+                isLoggedIn();
                 break;
             default:
-                console.log(data);
                 if (typeof data.detail == 'string') {
                     document.querySelector('#message').innerHTML = data.detail;
                 } else {
