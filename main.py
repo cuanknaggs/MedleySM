@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlalchemy import create_engine, Column, Integer, String, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -42,6 +42,7 @@ class Post(Base):
     fact_check = Column(Integer)
     user_name = Column(String(256))
     user_id = Column(Integer)
+    created_at = Column(TIMESTAMP, default=datetime.utcnow)
 
 class Users(Base):
     __tablename__ = 'users'
@@ -49,6 +50,13 @@ class Users(Base):
     name = Column(String(256), unique=True)
     passwordHashed = Column(String)
     moderator = Column(Boolean)
+    created_at = Column(TIMESTAMP, default=datetime.utcnow)
+
+class Likes(Base):
+    __tablename__ = 'likes'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer)
+    post_id = Column(Integer)
 
 # Create the database
 Base.metadata.create_all(engine)
@@ -63,6 +71,10 @@ class createUser(BaseModel):
     name: str
     password: str
     moderator: bool
+
+class createLike(BaseModel):
+    user_id: int
+    post_id: int
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -123,7 +135,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     user = await get_user_by_name(name=token_data.name)
     if user is None:
         raise credentials_exception
-    print(user)
+
     return user
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
@@ -137,10 +149,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/api/login")
-async def login():
-    return "login"
-
 @app.get("/api/posts")
 async def posts(start: int = 0, limit: int = 10):
     '''
@@ -151,8 +159,24 @@ async def posts(start: int = 0, limit: int = 10):
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
-    # get the post item with the given id
-    posts = session.query(Post).where(Post.id>=start).limit(limit).all()
+    if (limit == 0):
+        posts = session.query(Post).order_by(Post.created_at.desc()).all()
+    else:
+        posts = session.query(Post).where(Post.id>=start).limit(limit).order_by(Post.created_at.desc()).all()
+
+    # close the session
+    session.close()
+    return posts
+
+@app.get("/api/posts/{user_name}")
+async def posts_by_user(user_name: str):
+    '''
+    return a list of posts for a user
+    '''
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+    print(user_name)
+    posts = session.query(Post).where(Post.user_name==user_name).order_by(Post.created_at.desc()).all()
 
     # close the session
     session.close()
@@ -173,10 +197,8 @@ async def get_post(post_id: int):
 @app.post("/api/post", status_code=status.HTTP_201_CREATED)
 async def create_post(post: createPost, current_user: User = Depends(get_current_active_user)):
     # get current user
-    print(post)
-    print(current_user)
-    user_id = 0
-    user_name = 'qwerty'
+    user = await get_user_by_name(current_user.name)
+
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
@@ -184,8 +206,8 @@ async def create_post(post: createPost, current_user: User = Depends(get_current
     medleysmdb = Post(
         content = post.content,
         parent_post = post.parent_post,
-        user_name = user_name,
-        user_id = user_id
+        user_name = user.name,
+        user_id = user.id
     )
 
     # add it to the session and commit it
@@ -200,26 +222,41 @@ async def create_post(post: createPost, current_user: User = Depends(get_current
 
     return f"create post {id}"
 
-@app.put("/api/post/{post_id}")
-async def update_post(post_id: int):
+@app.put("/api/post/like/{post_id}")
+async def like_post(post_id: int, current_user: User = Depends(get_current_active_user)):
+    # get current user
+    user = await get_user_by_name(current_user.name)
+
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
     # get the post item with the given id
     post = session.query(Post).get(post_id)
+    post_likes = session.query(Likes).filter(Likes.post_id == post_id, Likes.user_id == user.id).count()
+    print(post_likes)
+    # test post exists
+    if post and post_likes == 0 and post.user_id != user.id:
+        # test if user has already liked post
+        medleysmdb = Likes(
+            user_id = user.id,
+            post_id = post_id
+        )
+        session.add(medleysmdb)
 
-    # update todo item with the given task (if an item with the given id was found)
-    if post:
-        likes = post.likes + 1
+        likes = post_likes + 1
         post.likes = likes
+
         session.commit()
+    else:
+        if post_likes != 0:
+            raise HTTPException(status_code=401, detail=f"User already liked post")
+        elif post.user_id == user.id:
+            raise HTTPException(status_code=401, detail=f"User owns post")
+        else:
+            raise HTTPException(status_code=404, detail=f"Post not found")
 
     # close the session
     session.close()
-
-    # check if todo item with given id exists. If not, raise exception and return 404 not found response
-    if not post:
-        raise HTTPException(status_code=404, detail=f"Post not found")
 
     # return post.likes
     return "update post"
