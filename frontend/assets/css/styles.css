@@ -31,6 +31,9 @@ input[type='submit'] {
     padding-right: 1em;
     clip-path: var(--clip-path-s);
 }
+button {
+    cursor: pointer;
+}
 button.cancel {
     background: red;
 }

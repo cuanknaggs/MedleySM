@@ -75,6 +75,8 @@ loginForm.addEventListener('submit', login);
 const loginDialog = document.querySelector("#loginDialog");
 document.querySelector("#loginButton").addEventListener("click", () => {
     if (loggedIn) {
+        jwt = null;
+        loggedIn = false;
         setCookie('medleysm', '', 0, true);
         document.querySelector('#loginButton').innerHTML = 'login';
     } else {
@@ -118,34 +120,12 @@ createPost = async (event) => {
         const data = await response.json();
         switch(response.status) {
             case 201:
+                const postsList = document.querySelector('#postsList');
+                removeAllChildNodes(postsList);
+
                 getPosts().then((data) => {
                     data.map((post) => {
-                        const postContent = document.createElement('li');
-                        const postContentWrapper = document.createElement('div');
-                        const title = document.createElement('h3');
-                        const content = document.createElement('p');
-                        const likeCount = document.createElement('span');
-                        const like = document.createElement('button');
-                        const fackCheck = document.createElement('p');
-
-                        title.innerHTML = post.user_name;
-                        content.innerHTML = post.content;
-                        like.innerHTML = 'Like';
-                        like.setAttribute('id', `like_${post.id}`)
-                        if (post.like !== null) {
-                            likeCount.innerHTML = post.likes;
-                            like.appendChild(likeCount)
-                        }
-
-                        postContentWrapper.appendChild(title);
-                        postContentWrapper.appendChild(content);
-                        postContentWrapper.appendChild(like);
-                        if (post.fack_check) {
-                            fackCheck.innerHTML = post.fact_check;
-                            postContentWrapper.appendChild(fackCheck);
-                        }
-                        postContent.appendChild(postContentWrapper);
-                        postsList.appendChild(postContent);
+                        makePost(post);
                     })
                 })
                 createPostDialog.close();
