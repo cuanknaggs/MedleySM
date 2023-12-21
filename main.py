@@ -213,7 +213,6 @@ async def create_post(post: createPost, current_user: User = Depends(get_current
 
     if post.parent_post > -1:
         parent_post = session.query(Post).get(post.parent_post)
-        print(parent_post.id)
         parent_post.has_comments = True
 
     # create an instance of the medleysmdb database model
