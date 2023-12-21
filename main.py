@@ -152,19 +152,14 @@ app.add_middleware(
 )
 
 @app.get("/api/posts")
-async def posts(start: int = 0, limit: int = 10):
+async def posts():
     '''
-    return a paginated list of posts
-    take int start as first position
-    take int limit as number of posts to return
+    return a list of posts
     '''
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
 
-    if (limit == 0):
-        posts = session.query(Post).order_by(Post.created_at.desc()).all()
-    else:
-        posts = session.query(Post).where(Post.id>=start).limit(limit).order_by(Post.created_at.desc()).all()
+    posts = session.query(Post).order_by(Post.created_at.desc()).all()
 
     # close the session
     session.close()
