@@ -120,13 +120,14 @@ a {
                 border: 1px solid aqua;
                 display: grid;
                 grid-template-columns: 2.4fr 0.3fr 2rem;
-                grid-template-rows: 2rem 1.4fr 0.6fr;
+                grid-template-rows: 2rem 1.4fr 0.6fr auto;
                 gap: 0.8em;
                 grid-auto-flow: row;
                 grid-template-areas:
                     "post_user_name post_user_name post_likes"
                     "post_content post_content post_content"
-                    "button_bar button_bar button_bar";
+                    "button_bar button_bar button_bar"
+                    "comments comments comments";
                 & .post_likes {
                     grid-area: post_likes;
                     text-align: right;
@@ -179,7 +180,21 @@ a {
                     "button_bar button_bar button_bar";
             }
         }
-
+        & .comments {
+            grid-area: comments;
+            height: auto;
+            & li {
+                box-shadow: none;
+                border: none;
+                background: transparent;
+                & .post_wrapper {
+                    background: transparent;
+                    border: none;
+                    clip-path: none;
+                    border-left: 1px solid aqua;
+                }
+            }
+        }
         & li:hover {
             animation: pulse-animation 1s infinite;
         }
