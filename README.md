@@ -13,3 +13,13 @@ A minimal social media site, API with static HTML frontend
 CORS headers set to very permissive
 - open frontent/index.html in a browser
 - or host on localhost
+## Demo data
+- users names:
+    - dolphinsandwichchord
+    - moderntimes
+    - roastbear
+    - ragingbull
+    - watermelon
+    - cocoa
+- password (all demo users use the same password):
+    - qwerty
