@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import json 
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,6 +40,7 @@ class Post(Base):
     content = Column(String(256))
     likes = Column(Integer)
     parent_post = Column(Integer)
+    has_comments = Column(Boolean)
     fact_check = Column(Integer)
     user_name = Column(String(256))
     user_id = Column(Integer)
@@ -175,7 +177,7 @@ async def posts_by_user(user_name: str):
     '''
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
-    print(user_name)
+
     posts = session.query(Post).where(Post.user_name==user_name).order_by(Post.created_at.desc()).all()
 
     # close the session
@@ -194,6 +196,18 @@ async def get_post(post_id: int):
     session.close()
     return post
 
+@app.get("/api/post/{post_id}/comments")
+async def get_post(post_id: int):
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # get the comment posts by parent post id
+    posts = session.query(Post).where(Post.parent_post==post_id).order_by(Post.created_at.desc()).all()
+
+    # close the session
+    session.close()
+    return posts
+
 @app.post("/api/post", status_code=status.HTTP_201_CREATED)
 async def create_post(post: createPost, current_user: User = Depends(get_current_active_user)):
     # get current user
@@ -201,6 +215,11 @@ async def create_post(post: createPost, current_user: User = Depends(get_current
 
     # create a new database session
     session = Session(bind=engine, expire_on_commit=False)
+
+    if post.parent_post > -1:
+        parent_post = session.query(Post).get(post.parent_post)
+        print(parent_post.id)
+        parent_post.has_comments = True
 
     # create an instance of the medleysmdb database model
     medleysmdb = Post(
@@ -222,7 +241,7 @@ async def create_post(post: createPost, current_user: User = Depends(get_current
 
     return f"create post {id}"
 
-@app.put("/api/post/like/{post_id}")
+@app.put("/api/post/{post_id}/like")
 async def like_post(post_id: int, current_user: User = Depends(get_current_active_user)):
     # get current user
     user = await get_user_by_name(current_user.name)
@@ -233,7 +252,7 @@ async def like_post(post_id: int, current_user: User = Depends(get_current_activ
     # get the post item with the given id
     post = session.query(Post).get(post_id)
     post_likes = session.query(Likes).filter(Likes.post_id == post_id, Likes.user_id == user.id).count()
-    print(post_likes)
+
     # test post exists
     if post and post_likes == 0 and post.user_id != user.id:
         # test if user has already liked post
@@ -259,6 +278,30 @@ async def like_post(post_id: int, current_user: User = Depends(get_current_activ
     session.close()
 
     # return post.likes
+    return "update post"
+
+@app.put("/api/post/{post_id}/isFake")
+async def is_fake_post(post_id: int, current_user: User = Depends(get_current_active_user)):
+    # get current user
+    user = await get_user_by_name(current_user.name)
+
+    # create a new database session
+    session = Session(bind=engine, expire_on_commit=False)
+
+    # get the post item with the given id
+    post = session.query(Post).get(post_id)
+
+    # test post exists
+    if post:
+        post.fact_check = True
+
+        session.commit()
+    else:
+        raise HTTPException(status_code=404, detail=f"Post not found")
+
+    # close the session
+    session.close()
+
     return "update post"
 
 @app.get("/api/user/{user_id}")
@@ -328,10 +371,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/api/users/me/", response_model=User)
+@app.get("/api/users/me/")
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
-
-@app.get("/api/users/me/items/")
-async def read_own_items(current_user: User = Depends(get_current_active_user)):
-    return [{"item_id": "Foo", "owner": current_user.name}]
+    data = {
+        "status": "ok",
+        "userName": current_user.name,
+        "moderator": current_user.moderator
+    }
+    return data
