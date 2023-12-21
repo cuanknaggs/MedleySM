@@ -1,6 +1,8 @@
 // auth
 let jwt;
 let loggedIn = false;
+let currentUser;
+const createPostButton = document.querySelector("#createPostButton");
 
 setCookie = (cname, cvalue, exdays, unset = false) => {
     const d = new Date();
@@ -27,11 +29,21 @@ isLoggedIn = () => {
         }
     };
     fetch('http://127.0.0.1:8000/api/users/me/', options)
-        // .then(response => response.json())
+        .then(response => response.json())
         .then((response) => {
-            if (response.status == 200) {
+            if (response.status == 'ok') {
                 loggedIn = true;
+                currentUser = response;
                 document.querySelector('#loginButton').innerHTML = 'logout';
+                createPostButton.removeAttribute('disabled');
+                getPosts().then((data) => {
+                    const postsList = document.querySelector('#postsList');
+                    removeAllChildNodes(postsList);
+
+                    data.map((post) => {
+                        makePost(post, postsList, postTemplate);
+                    })
+                })
             }
         })
         .catch(err => console.error(err));
@@ -94,53 +106,11 @@ loginDialog.addEventListener("close", (e) => {
 
 // createPostDialog
 const createPostDialog = document.querySelector("#createPostDialog");
-document.querySelector("#createPostButton").addEventListener("click", () => {
+createPostButton.addEventListener("click", () => {
     createPostDialog.showModal();
 });
 document.querySelector("#cancelCreatePost").addEventListener("click", (event) => {
     event.preventDefault();
+    cleanPostDialog(createPostDialog);
     createPostDialog.close();
 });
-
-createPost = async (event) => {
-    event.preventDefault();
-    const body = {
-        "content": createPostForm.newPost.value,
-        "parent_post": -1
-    }
-    try {
-        const response = await fetch(event.target.action, {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${jwt}`
-            },
-            body: JSON.stringify(body),
-        });
-        const data = await response.json();
-        switch(response.status) {
-            case 201:
-                const postsList = document.querySelector('#postsList');
-                removeAllChildNodes(postsList);
-
-                getPosts().then((data) => {
-                    data.map((post) => {
-                        makePost(post);
-                    })
-                })
-                createPostDialog.close();
-                break;
-            default:
-                if (typeof data.detail == 'string') {
-                    document.querySelector('#createPostMessage').innerHTML = data.detail;
-                } else {
-                    document.querySelector('#createPostMessage').innerHTML = response.statusText;
-                }
-        }
-    } catch (e) {
-        console.error(e);
-    }
-}
-const createPostForm = document.querySelector('#createPost');
-createPostForm.addEventListener('submit', createPost)
-

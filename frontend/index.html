@@ -21,6 +21,26 @@
       <section id="posts" class="posts">
         <h2>posts</h2>
         <ul id="postsList" class="posts_list"></ul>
+        <template id="postTemplate">
+          <li id="" class="post_item" data-id="">
+            <div class="post_wrapper">
+              <h3 class="post_user_name"></h3>
+              <span class="post_likes">0</span>
+              <span class="fact_check hidden">
+                <span class="warning_icon">&#9888;</span> the content of this post is known to be false or missleading.
+              </span>
+              <p class="post_content"></p>
+              <div class="button_bar">
+                <button class="like">Like</button>
+                <button class="comment">comment</button>
+                <button class="moderate hidden">mark as false</button>
+                <button class="see_all" data-user="">see all user posts</button>
+                <button class="see_all_comments hidden" data-user="">see all comments</button>
+              </div>
+              <ul class="comments"></ul>
+            </div>
+          </li>
+        </template>
       </section>
     </main>
     <footer class="page_footer">
@@ -29,13 +49,14 @@
       </p>
     </footer>
 
-    <button id="createPostButton" class="create_post_button">+ create post</button>
+    <button id="createPostButton" class="create_post_button" disabled>+ create post</button>
 
     <dialog id="createPostDialog" class="create_post_dialog">
       <h2>create post</h2>
       <p id="parentPost"> - </p>
       <p id="createPostMessage"></p>
       <form id="createPost" class="create_post" action="http://127.0.0.1:8000/api/post">
+        <input id="parentPostId" name="parentPostId" type="hidden" value="-1" />
         <label for="newPost">your post goes here</label>
         <textarea id="newPost" name="newPost" rows="5" cols="33"></textarea>
         <div class="button_wrapper">
