@@ -130,6 +130,7 @@ makeUserPostsList = (userName) => {
             makePost(post, postsList, postTemplate);
         })
     })
+    allPosts.classList.remove('hidden');
 }
 
 showComments = (event, postId, postElement) => {
@@ -149,6 +150,7 @@ showComments = (event, postId, postElement) => {
 }
 
 makePost = (post, postsList, postTemplate) => {
+    const allPosts = document.querySelector('#allPosts');
     const postContent = postTemplate.content.cloneNode(true);
     const postLi = postContent.querySelector('li');
     const title = postContent.querySelector('h3');
@@ -173,6 +175,7 @@ makePost = (post, postsList, postTemplate) => {
     }
     seeAll.setAttribute('data-user', post.user_name);
     seeAll.addEventListener('click', () => {
+        allPosts.classList.remove('hidden');
         makeUserPostsList(post.user_name);
     })
     content.innerHTML = post.content;

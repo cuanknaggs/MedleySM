@@ -96,7 +96,6 @@ a {
     max-width: 50rem;
     margin: auto;
     padding: 0 1.5em;
-
     & .posts {
         height: 100%;
         & ul {
@@ -202,11 +201,18 @@ a {
             background: yellow;
             color: black;
         }
+        & .posts_title {
+            display: flex;
+            justify-content: space-between;
+            & button {
+                background: deeppink;
+                color: white;
+                font-weight: normal;
+                font-size: 1rem;
+            }
+        }
     }
 }
-
-
-
 
 .page_footer {
     grid-area: page_footer;

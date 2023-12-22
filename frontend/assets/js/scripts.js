@@ -114,3 +114,19 @@ document.querySelector("#cancelCreatePost").addEventListener("click", (event) =>
     cleanPostDialog(createPostDialog);
     createPostDialog.close();
 });
+
+// back to all posts from user view
+const allPosts = document.querySelector('#allPosts');
+allPosts.addEventListener('click', (event) => {
+    getPosts().then((data) => {
+        const postsList = document.querySelector('#postsList');
+        removeAllChildNodes(postsList);
+
+        data.map((post) => {
+            if (post.parent_post == -1) {
+                makePost(post, postsList, postTemplate);
+            }
+        })
+    })
+    allPosts.classList.add('hidden');
+})
