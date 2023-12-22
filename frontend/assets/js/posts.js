@@ -83,7 +83,6 @@ likePost = async (postId) => {
             }
         });
         const data = await response.json();
-        console.log(data)
         switch(response.status) {
             case 201:
                 break;
@@ -104,7 +103,6 @@ moderatePost = async (postId) => {
             }
         });
         const data = await response.json();
-        console.log(data)
         switch(response.status) {
             case 201:
                 break;
@@ -128,27 +126,29 @@ makeUserPostsList = (userName) => {
     removeAllChildNodes(postsList);
 
     getUserPosts(event.target.getAttribute('data-user')).then((data) => {
-        console.log(data)
         data.map((post) => {
             makePost(post, postsList, postTemplate);
         })
     })
 }
 
-showComments = (postId, postElement) => {
-    getComments(postId).then((data) => {
-        console.log(data);
-        const postsList = postElement.querySelector('.comments');
+showComments = (event, postId, postElement) => {
+    const postsList = postElement.querySelector('.comments');
+    if (event.target.classList.contains('open')) {
         removeAllChildNodes(postsList);
-
-        data.map((post) => {
-            makePost(post, postsList, postTemplate);
+        event.target.classList.remove('open')
+    } else {
+        getComments(postId).then((data) => {
+            event.target.classList.add('open')
+            removeAllChildNodes(postsList);
+            data.map((post) => {
+                makePost(post, postsList, postTemplate);
+            })
         })
-    })
+    }
 }
 
 makePost = (post, postsList, postTemplate) => {
-    console.log(post);
     const postContent = postTemplate.content.cloneNode(true);
     const postLi = postContent.querySelector('li');
     const title = postContent.querySelector('h3');
@@ -168,7 +168,7 @@ makePost = (post, postsList, postTemplate) => {
     if (post.has_comments) {
         seeAllComments.classList.remove('hidden');
         seeAllComments.addEventListener('click', () => {
-            showComments(post.id, postLi);
+            showComments(event, post.id, postLi);
         })
     }
     seeAll.setAttribute('data-user', post.user_name);
