@@ -119,7 +119,7 @@ a {
                 border: 1px solid aqua;
                 display: grid;
                 grid-template-columns: 2.4fr 0.3fr 2rem;
-                grid-template-rows: 2rem 1.4fr 0.6fr auto;
+                grid-template-rows: auto 1.4fr 0.6fr auto;
                 gap: 0.8em;
                 grid-auto-flow: row;
                 grid-template-areas:
@@ -162,6 +162,7 @@ a {
                 & .button_bar {
                     grid-area: button_bar;
                     display: flex;
+                    flex-wrap: wrap;
                     gap: 1.5em;
                 }
             }
@@ -171,7 +172,7 @@ a {
             box-shadow: 0 0 0.5em red;
             & .post_wrapper {
                 border: 1px solid red;
-                grid-template-rows: 2rem 2rem 1.4fr 0.6fr;
+                grid-template-rows: auto 2rem 1.4fr 0.6fr;
                 grid-template-areas:
                     "fact_check fact_check fact_check"
                     "post_user_name post_user_name post_likes"
