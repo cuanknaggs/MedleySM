@@ -59,7 +59,7 @@ const createPostForm = document.querySelector('#createPost');
 createPostForm.addEventListener('submit', createPost)
 
 getPosts = async () => {
-    const response = await fetch('http://127.0.0.1:8000/api/posts?start=0&limit=0');
+    const response = await fetch('http://127.0.0.1:8000/api/posts');
     return await response.json();
 }
 
